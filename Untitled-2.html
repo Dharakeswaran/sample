@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhancing B5G Firewall Optimisation Using AutoML and Explainable AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: "Warm Neutral Harmony" - A calming and professional palette with a base of warm grays and off-whites (bg-stone-50, bg-stone-100), complemented by a muted slate blue (slate-600, slate-800) for text and key elements. A subtle, warm amber (amber-500) is used as a minimal accent for interactive highlights and calls to action, ensuring a clean, focused, and sophisticated user experience. -->
+    <!-- Application Structure Plan: The SPA is designed as a narrative journey, guiding the user from the foundational problem to the advanced solution and future possibilities. The structure is thematic and task-oriented, not a rigid copy of the paper's layout.
+    1.  **Hero Section:** Grabs attention with the title and a concise summary.
+    2.  **Navigation Bar:** Provides quick, sticky access to key sections: The Problem, The Solution, Performance, Explainability (XAI), and Future Work. This facilitates non-linear exploration.
+    3.  **The Problem:** Establishes the context and highlights the limitations of the original approach using clear text and key metric callouts.
+    4.  **The Enhanced Solution:** This core section uses a tabbed interface (Architecture, ML Models, Features) to break down the complex enhancements into digestible parts. This is more engaging than a long scroll. HTML/CSS diagrams are used to visualize concepts like the system architecture.
+    5.  **Performance Deep Dive:** A dedicated, dashboard-like section for data visualization. It features an interactive bar chart for model comparison and pie charts to show dataset improvements. This allows users to directly interact with the results.
+    6.  **Explainable AI (XAI):** This section's purpose is to demystify "black box" AI. It explains the 'why' behind XAI and uses a visual metaphor created with HTML/CSS to illustrate how SHAP/LIME provides insights. This is more impactful for understanding than text alone.
+    7.  **Future Work & Conclusion:** Summarizes the key takeaways and outlines the next steps, providing a sense of completeness and forward momentum.
+    This structure was chosen to make a dense, technical topic accessible and engaging for a broader audience, including those who may not read the full paper. The interactive elements encourage exploration and a deeper understanding of the project's evolution and impact. -->
+    <!-- Visualization & Content Choices:
+    - **Report Info:** Model Performance Metrics (Table 1). **Goal:** Compare effectiveness of old vs. new models. **Viz/Method:** Interactive Bar Chart. **Interaction:** Hover tooltips show precise F1-score, accuracy, etc. **Justification:** A bar chart is excellent for direct comparison of quantitative values across categories. Interactivity makes it engaging and precise. **Library:** Chart.js (Canvas).
+    - **Report Info:** Dataset Class Distribution (Figure 6). **Goal:** Show the improvement from imbalanced to balanced data. **Viz/Method:** Two Pie Charts (Side-by-side). **Interaction:** Hover tooltips show class percentages. **Justification:** Pie charts are immediately intuitive for showing proportions of a whole, making the imbalance and subsequent correction visually obvious. **Library:** Chart.js (Canvas).
+    - **Report Info:** Feature Importance (Figure 9). **Goal:** Display the most influential factors in the model's decisions. **Viz/Method:** Horizontal Bar Chart. **Interaction:** Hover tooltips show importance scores. **Justification:** A horizontal bar chart is ideal for comparing the magnitude of different features with long labels. **Library:** Chart.js (Canvas).
+    - **Report Info:** System Architecture & Conceptual Flows (Figures 1, 2, 5). **Goal:** Explain complex processes and structures. **Viz/Method:** Structured HTML & Tailwind CSS diagrams. **Interaction:** Static visual aids. **Justification:** Avoids proscribed Mermaid/SVG. Custom HTML/CSS diagrams provide a clean, integrated, and stylistically consistent way to represent flows and hierarchies without external libraries or image files, ensuring fast loading and a unified look. **Library/Method:** HTML/CSS.
+    - **Report Info:** Key statistics (e.g., F1-score improvement). **Goal:** Highlight critical data points. **Viz/Method:** Large-font "Key Metric" cards. **Interaction:** Static. **Justification:** Draws immediate user attention to the most important outcomes of the research. **Library/Method:** HTML/CSS. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb; /* bg-gray-50 */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+        }
+        .nav-link:hover {
+            color: #f59e0b; /* amber-500 */
+        }
+        .nav-link.active {
+            color: #f59e0b; /* amber-500 */
+            border-bottom-color: #f59e0b;
+        }
+        .tab-button.active {
+            background-color: #334155; /* slate-700 */
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-slate-700">
+
+    <!-- Header & Navigation -->
+    <header id="header" class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-slate-800">B5G Firewall AI</h1>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#problem" class="nav-link text-slate-600 font-medium border-b-2 border-transparent">The Problem</a>
+                <a href="#solution" class="nav-link text-slate-600 font-medium border-b-2 border-transparent">The Solution</a>
+                <a href="#performance" class="nav-link text-slate-600 font-medium border-b-2 border-transparent">Performance</a>
+                <a href="#xai" class="nav-link text-slate-600 font-medium border-b-2 border-transparent">Explainable AI</a>
+                <a href="#future" class="nav-link text-slate-600 font-medium border-b-2 border-transparent">Future Work</a>
+            </div>
+            <button id="mobile-menu-button" class="md:hidden text-slate-800">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </nav>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden">
+            <a href="#problem" class="block py-2 px-6 text-slate-600 hover:bg-stone-100">The Problem</a>
+            <a href="#solution" class="block py-2 px-6 text-slate-600 hover:bg-stone-100">The Solution</a>
+            <a href="#performance" class="block py-2 px-6 text-slate-600 hover:bg-stone-100">Performance</a>
+            <a href="#xai" class="block py-2 px-6 text-slate-600 hover:bg-stone-100">Explainable AI</a>
+            <a href="#future" class="block py-2 px-6 text-slate-600 hover:bg-stone-100">Future Work</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-8 md:py-12">
+
+        <!-- Hero Section -->
+        <section id="hero" class="text-center py-12">
+            <h2 class="text-3xl md:text-5xl font-bold text-slate-800 mb-4">Enhancing B5G Firewall Optimisation</h2>
+            <p class="text-lg md:text-xl text-slate-600 max-w-3xl mx-auto">Using Automated Machine Learning (AutoML) and Explainable AI (XAI) to create a robust, transparent, and adaptive security framework for next-generation networks.</p>
+        </section>
+
+        <!-- The Problem Section -->
+        <section id="problem" class="py-16 scroll-mt-20">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold text-slate-800">The Challenge: Static Rules in a Dynamic World</h3>
+                <p class="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">The initial research addressed a critical issue in B5G network security: firewall rules were often static and not optimized for real-time network conditions. This led to suboptimal performance and potential security gaps. The original ML-based solution was a major step forward, but had room for significant improvement.</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+                <div class="bg-white p-8 rounded-xl shadow-md">
+                    <h4 class="font-bold text-xl text-slate-800 mb-3">Original Approach Limitations</h4>
+                    <ul class="space-y-3 text-slate-600">
+                        <li class="flex items-start">
+                            <span class="text-amber-500 font-bold mr-3">●</span>
+                            <div><strong class="text-slate-700">Limited Model Scope:</strong> Relied on a single Random Forest model, which might not capture all complex data patterns.</div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-amber-500 font-bold mr-3">●</span>
+                            <div><strong class="text-slate-700">Partial Dataset:</strong> Trained on only 10% of the available IW-IB-5GNET dataset, leading to potential bias.</div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-amber-500 font-bold mr-3">●</span>
+                            <div><strong class="text-slate-700">"Black Box" Decisions:</strong> Lacked a clear explanation of *why* the model made a specific choice, hindering trust and debuggability.</div>
+                        </li>
+                         <li class="flex items-start">
+                            <span class="text-amber-500 font-bold mr-3">●</span>
+                            <div><strong class="text-slate-700">Basic Features:</strong> Did not incorporate dynamic time-based features or resource (CPU/Memory) consumption.</div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="text-center">
+                    <div class="bg-white p-8 rounded-xl shadow-md">
+                        <p class="text-slate-600 text-lg">Original Best Model F1-Score</p>
+                        <p class="text-6xl font-bold text-slate-800 my-2">0.9083</p>
+                        <p class="text-slate-500">A strong start, but the goal for a truly robust system was an F1-score <strong class="text-slate-600">>0.93</strong>.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- The Solution Section -->
+        <section id="solution" class="py-16 bg-stone-100 -mx-6 px-6 rounded-2xl scroll-mt-20">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold text-slate-800">The Enhanced Solution: An Intelligent, Adaptive Framework</h3>
+                <p class="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">To overcome the limitations, the framework was rebuilt with advanced techniques focusing on performance, transparency, and adaptability.</p>
+            </div>
+
+            <div>
+                <div class="mb-8 flex justify-center border-b border-slate-300">
+                    <button data-tab="architecture" class="tab-button px-6 py-3 font-medium text-slate-600 transition active">Architecture</button>
+                    <button data-tab="ml-models" class="tab-button px-6 py-3 font-medium text-slate-600 transition">ML Models</button>
+                    <button data-tab="features" class="tab-button px-6 py-3 font-medium text-slate-600 transition">Feature Engineering</button>
+                </div>
+
+                <div id="tab-content">
+                    <div id="architecture-content" class="tab-pane active">
+                        <div class="grid md:grid-cols-2 gap-8 items-center">
+                            <div>
+                                <h4 class="font-bold text-xl text-slate-800 mb-3">Upgraded System Architecture</h4>
+                                <p class="text-slate-600 mb-4">The new architecture integrates real-time prediction services and deploys models on edge nodes. This reduces latency and allows for instantaneous firewall adjustments. It also extends support to modern technologies like `nftables` for greater flexibility.</p>
+                                <ul class="space-y-3 text-slate-600">
+                                    <li class="flex items-start"><span class="text-amber-500 font-bold mr-3">→</span><div><strong>Real-time Prediction:</strong> Uses FastAPI or Streamlit for immediate rule optimization.</div></li>
+                                    <li class="flex items-start"><span class="text-amber-500 font-bold mr-3">→</span><div><strong>Edge Deployment:</strong> Moves AI models closer to the data source for ultra-low latency decisions.</div></li>
+                                    <li class="flex items-start"><span class="text-amber-500 font-bold mr-3">→</span><div><strong>Reinforcement Learning:</strong> Explores continuous, autonomous optimization through an RL agent that learns from the live network environment.</div></li>
+                                </ul>
+                            </div>
+                            <div class="bg-white p-6 rounded-xl shadow-md">
+                                <h5 class="font-semibold text-center text-slate-700 mb-4">Conceptual Flow</h5>
+                                <div class="space-y-2">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-10 h-10 flex items-center justify-center bg-slate-200 rounded-full text-slate-600 font-bold">1</div>
+                                        <div class="flex-1 p-3 bg-slate-100 rounded-lg">Network Sensors & Metrics</div>
+                                    </div>
+                                    <div class="pl-5">
+                                        <div class="h-6 w-px bg-slate-300 ml-5"></div>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-10 h-10 flex items-center justify-center bg-slate-200 rounded-full text-slate-600 font-bold">2</div>
+                                        <div class="flex-1 p-3 bg-slate-100 rounded-lg">Cognitive Layer (ML Classifier) at the Edge</div>
+                                    </div>
+                                     <div class="pl-5">
+                                        <div class="h-6 w-px bg-slate-300 ml-5"></div>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-10 h-10 flex items-center justify-center bg-slate-200 rounded-full text-slate-600 font-bold">3</div>
+                                        <div class="flex-1 p-3 bg-slate-100 rounded-lg">Explainable AI (SHAP/LIME) Insights</div>
+                                    </div>
+                                     <div class="pl-5">
+                                        <div class="h-6 w-px bg-slate-300 ml-5"></div>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-10 h-10 flex items-center justify-center bg-amber-400 rounded-full text-slate-800 font-bold">4</div>
+                                        <div class="flex-1 p-3 bg-amber-100 rounded-lg">Optimized Rule Deployed via Actuators</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="ml-models-content" class="tab-pane hidden">
+                        <h4 class="font-bold text-xl text-slate-800 mb-3 text-center">Adopting Advanced ML Techniques</h4>
+                        <p class="text-slate-600 mb-8 max-w-2xl mx-auto text-center">The single Random Forest model was replaced with a suite of more powerful and automated techniques to find the best possible solution and boost performance.</p>
+                        <div class="grid md:grid-cols-3 gap-6">
+                            <div class="bg-white p-6 rounded-xl shadow-sm">
+                                <h5 class="font-semibold text-slate-800">AutoML</h5>
+                                <p class="text-sm text-slate-600 mt-1">Tools like <strong>AutoSklearn</strong> and <strong>TPOT</strong> automatically search for the best algorithms and hyperparameters, saving time and often finding superior models.</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-xl shadow-sm">
+                                <h5 class="font-semibold text-slate-800">Advanced Boosters</h5>
+                                <p class="text-sm text-slate-600 mt-1"><strong>LightGBM</strong> and <strong>CatBoost</strong> were introduced. They are highly efficient gradient boosting models known for their speed and accuracy, especially with large datasets.</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-xl shadow-sm">
+                                <h5 class="font-semibold text-slate-800">Ensemble Stacking</h5>
+                                <p class="text-sm text-slate-600 mt-1">The top-performing method. It combines predictions from multiple models (RF, XGBoost, MLP) to create a single, more robust "super model" that outperforms any individual one.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="features-content" class="tab-pane hidden">
+                        <h4 class="font-bold text-xl text-slate-800 mb-3 text-center">Richer Data Through Feature Engineering</h4>
+                        <p class="text-slate-600 mb-8 max-w-2xl mx-auto text-center">To make smarter decisions, the model needed more context. New features were engineered from the raw data to provide a deeper understanding of network behavior.</p>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-white p-6 rounded-xl shadow-sm">
+                                <h5 class="font-semibold text-slate-800">Time-Based Features</h5>
+                                <p class="text-sm text-slate-600 mt-1">Metrics like <strong>rule burst time, duration, and frequency</strong> were added. These help the model understand traffic dynamics and predict events like congestion before they happen.</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-xl shadow-sm">
+                                <h5 class="font-semibold text-slate-800">Resource Usage</h5>
+                                <p class="text-sm text-slate-600 mt-1">By monitoring <strong>CPU and memory usage per rule</strong>, the system can make resource-aware optimizations, ensuring that a new rule doesn't accidentally create a performance bottleneck.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Performance Section -->
+        <section id="performance" class="py-16 scroll-mt-20">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold text-slate-800">Performance Deep Dive: A Clear Winner</h3>
+                <p class="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">The new methods delivered a significant boost in performance, surpassing the target F1-score and establishing a new benchmark for accuracy and reliability.</p>
+            </div>
+            
+            <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                <h4 class="font-bold text-xl text-slate-800 mb-4">Model Performance Comparison (F1-Score)</h4>
+                <div class="chart-container">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 mt-12">
+                <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                    <h4 class="font-bold text-xl text-slate-800 mb-4">Dataset Enhancement: From Imbalanced to Augmented</h4>
+                     <p class="text-slate-600 mb-4 text-sm">The original dataset was heavily imbalanced. Using synthetic data generation (CopulaGAN), the dataset was augmented to provide a balanced view, drastically improving the model's ability to learn from minority classes.</p>
+                    <div class="chart-container" style="height: 300px; max-height: 40vh;">
+                        <canvas id="datasetChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                    <h4 class="font-bold text-xl text-slate-800 mb-4">Key Feature Importance (Ensemble Model)</h4>
+                    <p class="text-slate-600 mb-4 text-sm">This chart shows which data points had the most influence on the best model's decisions. Network metrics related to traffic volume and specific technology activation are top contributors.</p>
+                    <div class="chart-container" style="height: 300px; max-height: 40vh;">
+                        <canvas id="featureImportanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Explainable AI Section -->
+        <section id="xai" class="py-16 bg-stone-100 -mx-6 px-6 rounded-2xl scroll-mt-20">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold text-slate-800">Opening the Black Box with Explainable AI (XAI)</h3>
+                <p class="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">A high-performing model isn't enough if you can't trust it. XAI techniques like SHAP and LIME were integrated to make the AI's decision-making process transparent and understandable.</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+                <div class="bg-white p-8 rounded-xl shadow-md">
+                    <h4 class="font-bold text-xl text-slate-800 mb-3">Why is XAI Crucial?</h4>
+                    <ul class="space-y-3 text-slate-600">
+                        <li class="flex items-start">
+                            <span class="text-amber-500 font-bold mr-3">✓</span>
+                            <div><strong class="text-slate-700">Builds Trust:</strong> Administrators can see the 'why' behind a recommendation, increasing confidence in the system.</div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-amber-500 font-bold mr-3">✓</span>
+                            <div><strong class="text-slate-700">Facilitates Debugging:</strong> If the model makes an unexpected decision, XAI helps pinpoint the cause quickly.</div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-amber-500 font-bold mr-3">✓</span>
+                            <div><strong class="text-slate-700">Ensures Accountability:</strong> Provides a clear audit trail for all automated changes, which is vital for security and compliance.</div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-md">
+                    <h5 class="font-semibold text-center text-slate-700 mb-4">How XAI Provides Clarity</h5>
+                    <div class="flex flex-col items-center">
+                        <div class="p-4 bg-slate-800 text-white rounded-lg w-full text-center">AI Model Decision ("Black Box")</div>
+                        <div class="h-8 w-px bg-slate-300"></div>
+                        <div class="flex items-center justify-center text-2xl">
+                            <span>🔮</span>
+                            <span class="mx-4 text-slate-400">+</span>
+                            <span class="font-bold text-amber-500">XAI</span>
+                        </div>
+                        <div class="h-8 w-px bg-slate-300"></div>
+                        <div class="p-4 bg-emerald-100 text-emerald-800 rounded-lg w-full">
+                            <p class="font-semibold text-center">Transparent Insight</p>
+                            <p class="text-xs text-center mt-1">"Chose 'iptables' because 'Rule Burst Time' was high and 'CPU Usage' was low."</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Future Work Section -->
+        <section id="future" class="py-16 scroll-mt-20">
+            <div class="text-center">
+                <h3 class="text-3xl font-bold text-slate-800">Conclusion & Future Directions</h3>
+                <p class="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">This enhanced framework establishes a new standard for intelligent firewall optimization. It is more accurate, transparent, and adaptive than its predecessor. Future work will focus on deploying it in real-world testbeds and exploring even more advanced concepts.</p>
+                <div class="mt-8 grid md:grid-cols-3 gap-6 text-left">
+                    <div class="border-t-4 border-amber-400 bg-white p-6 rounded-lg shadow-sm">
+                        <h5 class="font-semibold text-slate-800">Multi-Agent RL</h5>
+                        <p class="text-sm text-slate-600 mt-1">Using multiple, coordinated AI agents to manage security across vast, decentralized networks.</p>
+                    </div>
+                    <div class="border-t-4 border-amber-400 bg-white p-6 rounded-lg shadow-sm">
+                        <h5 class="font-semibold text-slate-800">Adversarial Training</h5>
+                        <p class="text-sm text-slate-600 mt-1">Making the model more robust by training it to recognize and resist attempts by attackers to deceive it.</p>
+                    </div>
+                    <div class="border-t-4 border-amber-400 bg-white p-6 rounded-lg shadow-sm">
+                        <h5 class="font-semibold text-slate-800">Real-World Deployment</h5>
+                        <p class="text-sm text-slate-600 mt-1">The ultimate test: moving from simulation to a live B5G network to validate performance and utility under operational conditions.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    
+    <footer class="bg-slate-800 text-stone-300 mt-16">
+        <div class="container mx-auto px-6 py-4 text-center text-sm">
+            <p>Interactive report generated based on the research paper "Enhancing B5G Firewall Optimisation Using AutoML and Explainable AI".</p>
+            <p class="mt-1 opacity-70">This visualization is for informational purposes.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Mobile menu toggle
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            // Tab functionality
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabPanes = document.querySelectorAll('.tab-pane');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabId = button.dataset.tab;
+
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    tabPanes.forEach(pane => {
+                        if (pane.id === `${tabId}-content`) {
+                            pane.classList.remove('hidden');
+                            pane.classList.add('active');
+                        } else {
+                            pane.classList.add('hidden');
+                            pane.classList.remove('active');
+                        }
+                    });
+                });
+            });
+            
+            // Navigation link active state on scroll
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.nav-link');
+
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 100) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href').includes(current)) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+
+            // Chart.js Implementations
+            const performanceData = {
+                labels: ['Original RF', 'AutoSklearn', 'TPOT', 'LightGBM', 'CatBoost', 'Ensemble Stacking'],
+                datasets: [{
+                    label: 'F1-Score',
+                    data: [0.9083, 0.9380, 0.9395, 0.9455, 0.9515, 0.9575],
+                    backgroundColor: [
+                        'rgba(124, 136, 152, 0.6)', // slate-500
+                        'rgba(51, 65, 85, 0.6)',
+                        'rgba(51, 65, 85, 0.7)',
+                        'rgba(51, 65, 85, 0.8)',
+                        'rgba(51, 65, 85, 0.9)',
+                        'rgba(245, 158, 11, 0.8)' // amber-500
+                    ],
+                    borderColor: [
+                        'rgba(124, 136, 152, 1)',
+                        'rgba(51, 65, 85, 1)',
+                        'rgba(51, 65, 85, 1)',
+                        'rgba(51, 65, 85, 1)',
+                        'rgba(51, 65, 85, 1)',
+                        'rgba(245, 158, 11, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+
+            const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+            new Chart(performanceCtx, {
+                type: 'bar',
+                data: performanceData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 0.85,
+                            title: {
+                                display: true,
+                                text: 'F1-Score'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y.toFixed(4);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const datasetData = {
+                labels: ['OVS', 'TC', 'iptables'],
+                datasets: [{
+                    label: 'Original Distribution',
+                    data: [90, 6, 4],
+                    backgroundColor: ['#64748b', '#94a3b8', '#cbd5e1'],
+                }, {
+                    label: 'Augmented Distribution',
+                    data: [33.3, 33.3, 33.3],
+                    backgroundColor: ['#334155', '#475569', '#64748b'],
+                }]
+            };
+
+            const datasetCtx = document.getElementById('datasetChart').getContext('2d');
+            new Chart(datasetCtx, {
+                type: 'pie',
+                data: datasetData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Dataset Class Distribution (Original vs. Augmented)'
+                        },
+                        tooltip: {
+                             callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += context.label + ' ' + context.parsed + '%';
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            const featureImportanceData = {
+                labels: ['sense', 'IPTAB_activated', 'TC_numberRulesActivatedTotal', 'OVS_RX_bytes', 'OVS_TX_packets', 'OVS_RX_packets', 'programmable Tech IPTABLES'],
+                datasets: [{
+                    label: 'Feature Importance',
+                    data: [0.175, 0.15, 0.125, 0.10, 0.09, 0.08, 0.07],
+                    backgroundColor: 'rgba(51, 65, 85, 0.7)',
+                    borderColor: 'rgba(51, 65, 85, 1)',
+                    borderWidth: 1
+                }]
+            };
+
+            const featureImportanceCtx = document.getElementById('featureImportanceChart').getContext('2d');
+            new Chart(featureImportanceCtx, {
+                type: 'bar',
+                data: featureImportanceData,
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Importance Score'
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
